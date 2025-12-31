@@ -1,36 +1,158 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Find Your Event
 
-## Getting Started
+A small Next.js app that fetches a list of upcoming events and lets you search them instantly by **name** or **location**.
 
-First, run the development server:
+This was built as a take-home exercise to demonstrate:
+- React fundamentals (state, controlled inputs, derived UI with `useMemo`)
+- logic (filtering + optional sorting)
+- UX (clear loading/error/empty states)
+- testing (a unit test verifying filtering)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Features
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### Events list (from API)
+- Fetches events from a Postman Mock Server endpoint.
+- Each event has: `id`, `name`, `date`, `location`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Search
+- Filters by **name OR location** as the user types.
+- Case-insensitive.
+- Matching text is highlighted (only once the search term is **2+ characters**).
 
-## Learn More
+### Empty state
+- Shows **“No events found!”** when no results match.
 
-To learn more about Next.js, take a look at the following resources:
+### Sort toggle
+- Default view is **unsorted** (original API order).
+- A text button toggles sorting by **date ascending (soonest first)**.
+- Toggle again to return to original order.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Scrolling
+- Only the **event list** scrolls (header + search stay in place).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Tech used
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Next.js (App Router)** — React framework and routing
+- **React** — functional components + built-in hooks (`useState`, `useEffect`, `useMemo`)
+- **Tailwind CSS v4** — lightweight styling without custom CSS files
+- **Jest** — unit testing for filtering logic
+- **Postman Mock Server** — external mock API for the `/events` endpoint
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## API
+
+The app expects:
+
+- GET `/events`
+
+Response shape:
+
+- `{ "success": true, "data": [ ...events ] }`
+
+Example event object:
+
+- `{ "id": "1", "name": "Manchester Tech Meetup", "date": "2026-01-12", "location": "Manchester, UK" }`
+
+---
+
+## Project structure (high level)
+
+- `src/app/page.jsx`
+  - Page shell/layout
+
+- `src/app/EventsClient.jsx`
+  - Fetches events
+  - Manages state (query, loading/error, sort toggle)
+  - Filters + optionally sorts
+  - Passes results to the list
+
+- `src/app/components/`
+  - `SearchBar` (controlled input)
+  - `EventList` (empty state + list)
+  - `EventCard` (event display + highlighting)
+
+- `src/app/utils/events.js`
+  - pure utilities: `filterEvents`, `sortBySoonestDate`, highlight helpers
+
+- `src/lib/api/`
+  - `client.js` (shared request wrapper + base URL handling)
+  - `events.js` (domain wrapper: `getEvents()`)
+
+- `__tests__/events.utils.test.js`
+  - Jest test verifying filtering behaviour
+
+---
+
+## How to run it
+
+### Prerequisites
+- Node.js 18+ (Node 20 recommended)
+- npm (comes with Node)
+
+Check versions:
+
+    node -v
+    npm -v
+
+### Install dependencies
+
+From the project root:
+
+    npm install
+
+---
+
+## Environment configuration
+
+Create `.env.local` in the project root and set the API base URL:
+
+    NEXT_PUBLIC_API_BASE_URL=https://0499455a-7e06-475e-b0fa-abb734fae339.mock.pstmn.io
+
+
+---
+
+## Run the app
+
+### Development
+
+    npm run dev
+
+Open:
+
+- http://localhost:3000
+
+### Production (optional)
+
+    npm run build
+    npm start
+
+---
+
+## Run tests
+
+    npm test
+
+### What the tests cover
+
+The unit tests verify core UI logic in `src/app/utils/events.js`:
+
+- **`filterEvents()`**
+  - empty query returns all events
+  - matches by name
+  - matches by location (case-insensitive)
+  - non-matching query returns an empty array
+
+- **`sortBySoonestDate()`**
+  - sorts events by date ascending (soonest first)
+
+- **`splitForHighlight()`**
+  - splits text into match/non-match parts (case-insensitive)
+  - highlights multiple occurrences
+  - safely handles special characters in the query (e.g. `C++`)
+
+
