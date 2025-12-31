@@ -10,7 +10,7 @@ export default function EventsClient() {
   const [query, setQuery] = useState('');
   const [events, setEvents] = useState([]);
   const [status, setStatus] = useState('loading');
-  const [sortEnabled, setSortEnabled] = useState(false);
+  const [sortEnabled, setSortEnabled] = useState(true);
 
   useEffect(() => {
     let alive = true;
